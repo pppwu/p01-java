@@ -3,9 +3,9 @@ package com.pta.store;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Stack;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
 @RestController
 @RequestMapping("/calculator")
@@ -15,29 +15,84 @@ public class CalculatorController {
     private final Stack<Double> redoStack = new Stack<>();
 
     @PostMapping("/calculate")
-    public ResponseEntity<CalculationResponse> calculate(@RequestParam double a, @RequestParam double b, @RequestParam String operator) {
-        double result;
-        String msg;
-        switch (operator) {
-            case "add":
+    public ResponseEntity<CalculationResponse> calculate(@RequestBody String expression) {
+
+        try {
+            double result = evaluate(expression);
+            history.push(result);
+            redoStack.clear();
+            return ResponseEntity.ok(new CalculationResponse("Calculate succeed.", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new CalculationResponse(e.getMessage(), null));
+        }
+    }
+
+    private double evaluate(String expression) {
+        Stack<Double> numbers = new Stack<>();
+        Stack<Character> operations = new Stack<>();
+
+        for (int i = 0; i < expression.length(); i++) {
+            char ch = expression.charAt(i);
+
+            if (Character.isDigit(ch) || ch == '.') {
+                StringBuilder sb = new StringBuilder();
+                while (i < expression.length() && (Character.isDigit(expression.charAt(i)) || expression.charAt(i) == '.')) {
+                    sb.append(expression.charAt(i));
+                    i++;
+                }
+                i--;
+                numbers.push(Double.parseDouble(sb.toString()));
+            }
+
+            else if (ch == '+' || ch == '-' || ch == '*' || ch == '/') {
+                while (!operations.isEmpty() && precedence(ch) <= precedence(operations.peek())) {
+                    evaluateOp(numbers, operations);
+                }
+                operations.push(ch);
+            }
+        }
+
+        while (!operations.isEmpty()) {
+            evaluateOp(numbers, operations);
+        }
+
+        double num = BigDecimal.valueOf(numbers.pop()).setScale(9, RoundingMode.HALF_UP).doubleValue();
+        return num % 1 == 0 ? (int) num : num;
+    }
+
+    private int precedence(char op) {
+        if (op == '+' || op == '-') return 1;
+        if (op == '*' || op == '/') return 2;
+        return 0;
+    }
+
+    private void evaluateOp(Stack<Double> numbers, Stack<Character> operations) {
+        if (numbers.size() < 2) return ;
+
+        double b = numbers.pop();
+        double a = numbers.pop();
+        char op = operations.pop();
+
+        double result = 0;
+        switch (op) {
+            case '+':
                 result = a + b;
                 break;
-            case "subtract":
+            case '-':
                 result = a - b;
                 break;
-            case "multiply":
+            case '*':
                 result = a * b;
                 break;
-            case "divide":
-                if ( b == 0) return ResponseEntity.badRequest().body(new CalculationResponse("can't divide by zero.", null));
+            case '/':
+                if (b == 0) throw new ArithmeticException("Division by zero");
                 result = a / b;
                 break;
             default:
-                return ResponseEntity.badRequest().body(new CalculationResponse("Invalid operator.", null));
+                throw new IllegalArgumentException("Invalid operator: " + op);
         }
-        history.push(result);
-        redoStack.clear();
-        return ResponseEntity.ok(new CalculationResponse("Calculate succeed.", result));
+        numbers.push(result);
+
     }
 
     @GetMapping("/history")
@@ -67,7 +122,7 @@ public class CalculatorController {
     public ResponseEntity<CalculationResponse<Double>> redo() {
 
         if (redoStack.isEmpty()) {
-            return ResponseEntity.noContent().build();  // 無可重做的內容時返回 204 No Content
+            return ResponseEntity.noContent().build();
         }
 
         double lastRedo = redoStack.pop();
