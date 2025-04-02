@@ -1,5 +1,6 @@
 <template>
-  <div id="app">
+  <h1>Q1. Calculator</h1>
+  <div id="q1-container">
     <div class="calculator">
       <input type="text" class="result"
              :value="result" readonly />
@@ -49,6 +50,20 @@
                 @click="calculate">=</button>
       </div>
     </div>
+    <div class="calculate-history">
+      <h3>History</h3>
+      <div class="reset-buttons">
+        <button class="undo" @click="undo">Undo</button>
+        <button class="redo" @click="redo">Redo</button>
+      </div>
+      <div class="history-list">
+        <ul>
+          <li v-for="(item, index) in history.slice().reverse()" :key="index">
+            {{item}}
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -62,9 +77,11 @@ export default {
       result: '',
       calculated: false,
       operator: '',
-      a: null,
-      b: null
+      history: []
     };
+  },
+  mounted() {
+    this.fetchHistory();
   },
   methods: {
     handleClick(value) {
@@ -113,9 +130,42 @@ export default {
         // Set result after receiving the response
         this.result = response.data.value;
         this.calculated = true;
+        this.fetchHistory();
       } catch (error) {
         console.error(error);
         this.result = 'Error';
+      }
+    },
+    async undo() {
+      try {
+        const response = await axios.get(`http://localhost:8080/calculator/history/undo`);
+
+        if (response.data && response.data.value !== undefined) {
+          this.result = response.data.value.toString();
+        }
+        this.fetchHistory();
+      } catch (error) {
+        console.error('Undo failed: ', error);
+      }
+    },
+    async redo() {
+      try {
+        const response = await axios.get(`http://localhost:8080/calculator/history/redo`);
+
+        if (response.data && response.data.value !== undefined) {
+          this.result = response.data.value.toString();
+        }
+        this.fetchHistory();
+      } catch (error) {
+        console.error('Redo failed: ', error);
+      }
+    },
+    async fetchHistory() {
+      try {
+        const response = await axios.get(`http://localhost:8080/calculator/history`);
+        this.history = response.data.value || [];
+      } catch (error) {
+        console.error('Fetching history failed: ', error);
       }
     }
   }
