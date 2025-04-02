@@ -1,15 +1,19 @@
 /*calculator.css*/
 
-#app {
+#q1-container {
     font-family: Arial, sans-serif;
     text-align: center;
     margin-top: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+    grid-column-gap: 5px;
 }
 .title {
     color: green;
 }
 
-.calculator {
+.calculator,.calculate-history {
     width: 300px;
     margin: 0 auto;
     border: 1px solid #ccc;
@@ -49,8 +53,13 @@ button {
     color: #d9efff;
 }
 
-.clear, .equal {
+.clear, .equal , .undo{
     background-color: #ff6666;
+    color: #fff;
+}
+
+.redo {
+    background-color: #00bd7e;
     color: #fff;
 }
 
@@ -62,3 +71,42 @@ button:hover {
     grid-column: span 2;
 }
 
+.calculate-history h3 {
+    color: #3fa9fc;
+}
+
+.reset-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 10px;
+}
+
+.history-list {
+    color: #000;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: scroll;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+    text-align: left;
+    margin-top: 10px;
+}
+
+.history-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.history-list li {
+    padding: 4px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.history-list li:last-child {
+    border-bottom: none;
+}
