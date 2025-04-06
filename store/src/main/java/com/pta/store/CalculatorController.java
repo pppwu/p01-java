@@ -27,6 +27,42 @@ public class CalculatorController {
         }
     }
 
+    @GetMapping("/history")
+    public ResponseEntity<CalculationResponse> history() {
+        if (history.isEmpty()) {
+            return ResponseEntity.badRequest().body(new CalculationResponse("History is empty.", null));
+        }
+        return ResponseEntity.ok(new CalculationResponse("History is existing", history));
+    }
+
+    @GetMapping("/history/undo")
+    public ResponseEntity<CalculationResponse<Double>> undo() {
+        if (history.isEmpty()) {
+            return ResponseEntity.badRequest().body(new CalculationResponse<>("History is empty.", null));
+        }
+
+        double lastResult = history.pop();
+        redoStack.push(lastResult);
+
+        String message = history.isEmpty() ? "History is now empty after undo." : "Undo succeeded.";
+        Double newTop = history.isEmpty() ? null : history.peek();
+
+        return ResponseEntity.ok(new CalculationResponse<>(message, newTop));
+    }
+
+    @GetMapping("/history/redo")
+    public ResponseEntity<CalculationResponse<Double>> redo() {
+
+        if (redoStack.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+
+        double lastRedo = redoStack.pop();
+        history.push(lastRedo);
+
+        return ResponseEntity.ok(new CalculationResponse<>("Redo succeeded.", lastRedo));
+    }
+
     private double evaluate(String expression) {
         Stack<Double> numbers = new Stack<>();
         Stack<Character> operations = new Stack<>();
@@ -93,41 +129,5 @@ public class CalculatorController {
         }
         numbers.push(result);
 
-    }
-
-    @GetMapping("/history")
-    public ResponseEntity<CalculationResponse> history() {
-        if (history.isEmpty()) {
-            return ResponseEntity.badRequest().body(new CalculationResponse("History is empty.", null));
-        }
-        return ResponseEntity.ok(new CalculationResponse("History is existing", history));
-    }
-
-    @GetMapping("/history/undo")
-    public ResponseEntity<CalculationResponse<Double>> undo() {
-        if (history.isEmpty()) {
-            return ResponseEntity.badRequest().body(new CalculationResponse<>("History is empty.", null));
-        }
-
-        double lastResult = history.pop();
-        redoStack.push(lastResult);
-
-        String message = history.isEmpty() ? "History is now empty after undo." : "Undo succeeded.";
-        Double newTop = history.isEmpty() ? null : history.peek();
-
-        return ResponseEntity.ok(new CalculationResponse<>(message, newTop));
-    }
-
-    @GetMapping("/history/redo")
-    public ResponseEntity<CalculationResponse<Double>> redo() {
-
-        if (redoStack.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        double lastRedo = redoStack.pop();
-        history.push(lastRedo);
-
-        return ResponseEntity.ok(new CalculationResponse<>("Redo succeeded.", lastRedo));
     }
 }
