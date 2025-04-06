@@ -4,7 +4,7 @@
     <h1>Welcome to the App</h1>
     <div class="options">
       <button @click="goToCalculator">Go to Calculator</button>
-      <button @click="goToLottery">Go to Lottery</button>
+      <button @click="goToLottery">Go to Fortune Wheel</button>
     </div>
   </div>
 </template>
@@ -17,7 +17,7 @@ export default {
       this.$router.push('/q1-calculator');
     },
     goToLottery() {
-      this.$router.push('/q2-lottery');
+      this.$router.push('/q2-fortune-wheel');
     }
   }
 };
