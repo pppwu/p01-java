@@ -100,7 +100,7 @@ const calculate = async () => {
   }
 
   try {
-    const response = await axios.post(`http://localhost:8080/calculator/calculate`, {
+    const response = await axios.post(`/calculator/calculate`, {
       expression: result.value
     })
     result.value = response.data.value
@@ -114,7 +114,7 @@ const calculate = async () => {
 
 const undo = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/calculator/history/undo`)
+    const response = await axios.get(`/calculator/history/undo`)
     if (response.data?.value !== undefined) {
       result.value = response.data.value.toString()
     }
@@ -126,7 +126,7 @@ const undo = async () => {
 
 const redo = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/calculator/history/redo`)
+    const response = await axios.get(`/calculator/history/redo`)
     if (response.data?.value !== undefined) {
       result.value = response.data.value.toString()
     }
@@ -138,7 +138,7 @@ const redo = async () => {
 
 const fetchHistory = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/calculator/history`)
+    const response = await axios.get(`/calculator/history`)
     history.value = response.data.value || []
   } catch (error) {
     console.error('Fetching history failed:', error)
